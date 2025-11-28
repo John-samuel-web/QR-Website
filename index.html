@@ -3,38 +3,103 @@
 <head>
   <meta charset="UTF-8">
   <title>QR Code Generator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       font-family: Arial, sans-serif;
       display: flex;
       flex-direction: column;
       align-items: center;
-      margin-top: 50px;
+      margin: 0;
+      padding: 20px;
       background: #f5f5f5;
+      min-height: 100vh;
     }
+
     h1 {
-      margin-bottom: 20px;
+      margin: 10px 0 20px;
+      text-align: center;
     }
+
     .container {
       background: white;
       padding: 20px 30px;
       border-radius: 10px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       text-align: center;
+      max-width: 400px;
+      width: 100%;
     }
+
+    .input-row {
+      display: flex;
+      flex-direction: row;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    @media (max-width: 480px) {
+      .input-row {
+        flex-direction: column;
+      }
+      button {
+        width: 100%;
+      }
+    }
+
     input {
-      width: 300px;
+      flex: 1;
       padding: 8px;
       font-size: 14px;
     }
+
     button {
-      margin-left: 8px;
       padding: 8px 14px;
       font-size: 14px;
       cursor: pointer;
+      border: none;
+      border-radius: 4px;
+      background: #007bff;
+      color: white;
     }
+
+    button:hover {
+      background: #0056b3;
+    }
+
     #qrcode {
       margin-top: 20px;
+      min-height: 200px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #downloadBtn {
+      display: none;
+      margin-top: 12px;
+      text-decoration: none;
+      font-size: 14px;
+      padding: 6px 12px;
+      border-radius: 4px;
+      background: #28a745;
+      color: white;
+    }
+
+    #downloadBtn:hover {
+      background: #1e7e34;
+    }
+
+    .footer-text {
+      margin-top: 15px;
+      font-size: 12px;
+      color: #666;
     }
   </style>
 </head>
@@ -42,10 +107,17 @@
   <h1>🔗 URL → QR Code Generator</h1>
 
   <div class="container">
-    <input type="text" id="urlInput" placeholder="Enter or paste your link here">
-    <button id="generateBtn">Generate QR</button>
+    <div class="input-row">
+      <input type="text" id="urlInput" placeholder="Enter or paste your link here">
+      <button id="generateBtn">Generate QR</button>
+    </div>
 
     <div id="qrcode"></div>
+    <a id="downloadBtn" download="qr-code.png">⬇ Download QR</a>
+
+    <div class="footer-text">
+      Paste any URL and generate a shareable QR code.
+    </div>
   </div>
 
   <!-- QRCode.js library -->
@@ -54,6 +126,7 @@
     const input = document.getElementById('urlInput');
     const btn = document.getElementById('generateBtn');
     const qrContainer = document.getElementById('qrcode');
+    const downloadBtn = document.getElementById('downloadBtn');
     let qr;
 
     btn.addEventListener('click', () => {
@@ -63,8 +136,9 @@
         return;
       }
 
-      // Clear previous QR
+      // Clear previous QR and hide download button
       qrContainer.innerHTML = "";
+      downloadBtn.style.display = "none";
 
       // Generate new QR
       qr = new QRCode(qrContainer, {
@@ -72,6 +146,32 @@
         width: 200,
         height: 200,
       });
+
+      // Wait a short moment for QRCode.js to create the <img> or <canvas>
+      setTimeout(() => {
+        const img = qrContainer.querySelector('img');
+        const canvas = qrContainer.querySelector('canvas');
+
+        let dataUrl = null;
+
+        if (img && img.src) {
+          dataUrl = img.src; // PNG data from <img>
+        } else if (canvas) {
+          dataUrl = canvas.toDataURL("image/png");
+        }
+
+        if (dataUrl) {
+          downloadBtn.href = dataUrl;
+          downloadBtn.style.display = "inline-block";
+        }
+      }, 300);
+    });
+
+    // Optional: allow pressing Enter to generate QR
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        btn.click();
+      }
     });
   </script>
 </body>
